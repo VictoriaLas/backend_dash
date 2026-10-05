@@ -1,0 +1,22 @@
+# Levanta solo la API: docker compose up --build  ->  http://localhost:8000/docs
+# Para levantar API y frontend juntos usa el docker-compose.yml de la raíz del repositorio.
+services:
+  backend:
+    build: .
+    image: vm-dashboard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      VMD_JWT_SECRET: ${VMD_JWT_SECRET:-cambia-esto-en-produccion-con-openssl-rand-hex-32}
+      VMD_SEED_DEMO_DATA: "true"
+      # Orígenes del frontend si lo arrancas aparte (npm run dev o el compose de frontend/)
+      VMD_CORS_ORIGINS: '["http://localhost:5173","http://localhost:8080"]'
+      # En local se sirve por http: con Secure=true algunos navegadores (Safari, o al entrar
+      # por la IP de la máquina) descartan la cookie. En producción con HTTPS déjalo en true.
+      VMD_COOKIE_SECURE: ${VMD_COOKIE_SECURE:-false}
+    volumes:
+      - backend-data:/data
+    restart: unless-stopped
+
+volumes:
+  backend-data:

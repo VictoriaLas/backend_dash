@@ -1,0 +1,18 @@
+# Despliegue en Render (https://render.com): New > Blueprint > selecciona este repositorio.
+services:
+  - type: web
+    name: vm-dashboard-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: VMD_JWT_SECRET
+        generateValue: true
+      # En el plan gratuito el disco no es persistente: la base SQLite vuelve a los datos de ejemplo en cada reinicio
+      - key: VMD_SEED_DEMO_DATA
+        value: "true"
