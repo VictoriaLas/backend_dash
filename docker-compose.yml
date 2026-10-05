@@ -1,0 +1,34 @@
+# Levanta todo: docker compose up --build
+#   App:  http://localhost:8080   (SPA; /api/* va al backend por nginx)
+#   API:  http://localhost:8000/docs
+services:
+  backend:
+    build: ./backend
+    image: vm-dashboard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      VMD_JWT_SECRET: ${VMD_JWT_SECRET:-cambia-esto-en-produccion-con-openssl-rand-hex-32}
+      VMD_SEED_DEMO_DATA: "true"
+      VMD_CORS_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
+      # En local se sirve por http: con Secure=true algunos navegadores (Safari, o al entrar
+      # por la IP de la máquina) descartan la cookie. En producción con HTTPS déjalo en true.
+      VMD_COOKIE_SECURE: ${VMD_COOKIE_SECURE:-false}
+    volumes:
+      - backend-data:/data   # la base SQLite sobrevive a reinicios y rebuilds
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: vm-dashboard-frontend
+    ports:
+      - "8080:80"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  backend-data:
